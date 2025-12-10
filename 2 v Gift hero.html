@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Gift Escape</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            position: relative;
+            color: #ffffff;
+        }
+        
+        canvas {
+            display: block;
+            background: transparent;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff6b8b;
+            font-size: 8vmin;
+            font-weight: 700;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 10;
+            transition: opacity 0.5s ease;
+            line-height: 1.2;
+            letter-spacing: 1px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        
+        .ui-container {
+            position: fixed;
+            top: 2vmin;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            gap: 1.5vmin;
+            align-items: center;
+            padding: 1.5vmin 2.5vmin;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            min-width: min(90vw, 800px);
+            justify-content: center;
+        }
+        
+        .score-container {
+            color: #4dc9ff;
+            font-size: clamp(16px, 3.2vmin, 24px);
+            font-weight: 600;
+            text-shadow: 0 2px 10px rgba(77, 201, 255, 0.3);
+            padding: 1vmin 2vmin;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(77, 201, 255, 0.15), rgba(77, 201, 255, 0.05));
+            border: 1px solid rgba(77, 201, 255, 0.2);
+            min-width: 120px;
+            text-align: center;
+            transition: all 0.3s ease;
+            flex: 1;
+            max-width: 200px;
+        }
+        
+        .speed-container {
+            color: #6bffb8;
+            font-size: clamp(14px, 2.8vmin, 22px);
+            font-weight: 500;
+            text-shadow: 0 2px 8px rgba(107, 255, 184, 0.3);
+            padding: 1vmin 2vmin;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(107, 255, 184, 0.15), rgba(107, 255, 184, 0.05));
+            border: 1px solid rgba(107, 255, 184, 0.2);
+            min-width: 100px;
+            text-align: center;
+            transition: all 0.3s ease;
+            flex: 1;
+            max-width: 180px;
+        }
+        
+        .record-container {
+            color: #ff9a9e;
+            font-size: clamp(14px, 2.8vmin, 22px);
+            font-weight: 500;
+            text-shadow: 0 2px 8px rgba(255, 154, 158, 0.3);
+            padding: 1vmin 2vmin;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255, 154, 158, 0.15), rgba(255, 154, 158, 0.05));
+            border: 1px solid rgba(255, 154, 158, 0.2);
+            min-width: 100px;
+            text-align: center;
+            transition: all 0.3s ease;
+            flex: 1;
+            max-width: 180px;
+        }
+        
+        .controls {
+            position: fixed;
+            bottom: 3vmin;
+            left: 0;
+            width: 100%;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: clamp(12px, 2.2vmin, 18px);
+            text-align: center;
+            pointer-events: none;
+            z-index: 10;
+            padding: 2vmin;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.4));
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+        
+        .special-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 6vmin 8vmin;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #333;
+            font-size: clamp(20px, 4.5vmin, 32px);
+            font-weight: 700;
+            text-align: center;
+            z-index: 30;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(30px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            max-width: min(90vw, 600px);
+            line-height: 1.4;
+            pointer-events: none;
+        }
+        
+        .special-message.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .special-message span {
+            display: block;
+            font-size: clamp(14px, 2.8vmin, 20px);
+            color: #666;
+            margin-top: 2.5vmin;
+            font-weight: 500;
+        }
+        
+        .special-message .instructions {
+            font-size: clamp(12px, 2.3vmin, 18px);
+            color: #444;
+            margin-top: 3.5vmin;
+            line-height: 1.5;
+            max-width: 70vmin;
+            font-weight: 400;
+        }
+        
+        .special-message .bot-link {
+            color: #4dc9ff;
+            font-weight: 600;
+            text-decoration: none;
+            margin-top: 1.5vmin;
+            transition: color 0.3s ease;
+            display: inline-block;
+            padding: 0.5vmin 1vmin;
+            border-radius: 6px;
+            background: rgba(77, 201, 255, 0.1);
+        }
+        
+        .continue-button {
+            margin-top: 5vmin;
+            padding: 2.5vmin 6vmin;
+            background: linear-gradient(135deg, #6bffb8, #4dc9ff);
+            color: #000;
+            border: none;
+            border-radius: 14px;
+            font-size: clamp(16px, 2.8vmin, 22px);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(77, 201, 255, 0.3);
+            pointer-events: auto;
+            min-width: min(28vmin, 200px);
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 31;
+        }
+        
+        .continue-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(77, 201, 255, 0.4);
+        }
+        
+        .continue-button:active {
+            transform: translateY(0);
+        }
+        
+        .boost-message {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, 0);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5vmin 4.5vmin;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #333;
+            font-size: clamp(14px, 2.8vmin, 20px);
+            font-weight: 600;
+            text-align: center;
+            z-index: 20;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        
+        /* Responsive Design - Единый стиль для всех устройств */
+        @media (max-width: 768px) {
+            .ui-container {
+                top: 1.5vmin;
+                padding: 1.2vmin 2vmin;
+                border-radius: 12px;
+                min-width: 95vw;
+                gap: 1vmin;
+            }
+            
+            .score-container,
+            .speed-container,
+            .record-container {
+                font-size: clamp(14px, 3.5vmin, 18px);
+                padding: 0.8vmin 1.5vmin;
+                border-radius: 10px;
+                min-width: 80px;
+            }
+            
+            .score-container {
+                font-size: clamp(16px, 3.8vmin, 20px);
+                min-width: 100px;
+            }
+            
+            .controls {
+                font-size: clamp(11px, 2vmin, 16px);
+                bottom: 2vmin;
+                padding: 1.5vmin;
+            }
+            
+            .game-over {
+                font-size: clamp(24px, 7vmin, 36px);
+            }
+            
+            .special-message {
+                font-size: clamp(18px, 4vmin, 28px);
+                padding: 5vmin 7vmin;
+                border-radius: 20px;
+            }
+            
+            .special-message span {
+                font-size: clamp(13px, 2.5vmin, 18px);
+            }
+            
+            .special-message .instructions {
+                font-size: clamp(11px, 2vmin, 16px);
+            }
+            
+            .continue-button {
+                font-size: clamp(14px, 2.5vmin, 18px);
+                padding: 2vmin 4vmin;
+                margin-top: 4vmin;
+            }
+            
+            .boost-message {
+                font-size: clamp(13px, 2.5vmin, 18px);
+                padding: 2vmin 3vmin;
+                white-space: normal;
+                max-width: 80vw;
+            }
+        }
+        
+        /* Small Phones */
+        @media (max-width: 480px) {
+            .ui-container {
+                padding: 1vmin 1.5vmin;
+                gap: 0.8vmin;
+            }
+            
+            .score-container,
+            .speed-container,
+            .record-container {
+                font-size: clamp(12px, 3vmin, 16px);
+                padding: 0.7vmin 1.2vmin;
+                min-width: 70px;
+            }
+            
+            .score-container {
+                font-size: clamp(14px, 3.2vmin, 18px);
+                min-width: 85px;
+            }
+            
+            .controls {
+                font-size: clamp(10px, 1.8vmin, 14px);
+                padding: 1.2vmin;
+            }
+        }
+        
+        /* Landscape Mode */
+        @media (orientation: landscape) and (max-height: 600px) {
+            .ui-container {
+                top: 1vmin;
+                padding: 0.8vmin 1.5vmin;
+                gap: 1vmin;
+            }
+            
+            .score-container,
+            .speed-container,
+            .record-container {
+                font-size: clamp(12px, 2.2vmin, 16px);
+                padding: 0.6vmin 1vmin;
+            }
+            
+            .controls {
+                font-size: clamp(10px, 1.6vmin, 14px);
+                bottom: 1vmin;
+                padding: 1vmin;
+            }
+        }
+        
+        /* Animation for score change */
+        @keyframes scorePulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+        
+        .score-pulse {
+            animation: scorePulse 0.3s ease;
+        }
+        
+        /* Smooth transitions */
+        .ui-container, .controls, .special-message, .continue-button {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    
+    <div class="ui-container">
+        <div class="score-container" id="scoreDisplay">0</div>
+        <div class="speed-container" id="speedDisplay">1.0x</div>
+        <div class="record-container" id="recordDisplay">🏆 0</div>
+    </div>
+    
+    <div class="game-over" id="gameOverText">💥 GAME OVER!</div>
+    <div class="special-message" id="specialMessage">
+        🎉 CONGRATULATIONS! 🎉
+        <span>Special Candy Collected!</span>
+        <div class="instructions">
+            To claim your reward, take a screenshot of this message and send it to
+            <span class="bot-link">https://t.me/Cvapik_bot</span>
+        </div>
+        <button class="continue-button" id="continueButton">Continue</button>
+    </div>
+    <div class="controls">cvapta.com</div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameOverText = document.getElementById('gameOverText');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const speedDisplay = document.getElementById('speedDisplay');
+        const recordDisplay = document.getElementById('recordDisplay');
+        const specialMessage = document.getElementById('specialMessage');
+        const continueButton = document.getElementById('continueButton');
+        
+        // Record system
+        let bestRecord = localStorage.getItem('cosmicGiftBestRecord') || 0;
+        recordDisplay.textContent = `🏆 ${bestRecord}`;
+        
+        // Variables to prevent accidental clicks
+        let isSpecialMessageActive = false;
+        let lastInteractionTime = 0;
+        const INTERACTION_COOLDOWN = 1000; // 1 second cooldown
+        
+        // Canvas resize
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initGameDimensions();
+        }
+        
+        // Game dimensions
+        let centerX, centerY, playerSize, orbitRadius, devilSize, baseDevilSpeed;
+        
+        function initGameDimensions() {
+            centerX = canvas.width / 2;
+            centerY = canvas.height / 2;
+            
+            const minDimension = Math.min(canvas.width, canvas.height);
+            const isMobile = minDimension < 768;
+            
+            if (isMobile) {
+                playerSize = minDimension * 0.05;
+                orbitRadius = minDimension * 0.34;
+                devilSize = minDimension * 0.04;
+                baseDevilSpeed = minDimension * 0.0026;
+            } else {
+                playerSize = minDimension * 0.042;
+                orbitRadius = minDimension * 0.3;
+                devilSize = minDimension * 0.033;
+                baseDevilSpeed = minDimension * 0.0021;
+            }
+        }
+        
+        // Emojis
+        const giftEmoji = '🎁';
+        const treeEmoji = '🎄';
+        const devilEmoji = '👿';
+        const specialCandyEmoji = '🍭';
+        const sparkleEmojis = ['✨', '⭐', '🌟'];
+        
+        // Game variables
+        let playerAngle = 0;
+        let clockwise = true;
+        let devils = [];
+        let specialCandy = null;
+        let lastDevilTime = 0;
+        let baseDevilInterval = 850;
+        let gameRunning = true;
+        let explosionParticles = [];
+        let giftRotation = 0;
+        let lastSpecialSpawn = 0;
+        let specialSpawnCooldown = 15000;
+        let specialSpawnChance = 0.005;
+        
+        // Boost system
+        let specialSpawnChanceBoost = 0;
+        let boostActiveTime = 0;
+        let boostTotalTime = 600;
+        let boostEffect = false;
+        
+        // Score and difficulty
+        let score = 0;
+        let gameTime = 0;
+        let speedMultiplier = 1.0;
+        let devilSpeedMultiplier = 1.0;
+        let devilIntervalMultiplier = 1.0;
+        let lastScoreTime = Date.now();
+        let lastSpeedIncreaseTime = Date.now();
+        
+        // Win flag
+        let isWin = false;
+        
+        // Shooting animation
+        let nextShotAngle = 0;
+        let chargeTime = 0;
+        let isCharging = false;
+        let chargeParticles = [];
+        let aimLineLength = 0;
+        
+        // Background stars
+        let backgroundStars = [];
+        
+        function initStars() {
+            backgroundStars = [];
+            const starCount = Math.min(100, (canvas.width * canvas.height) / 5000);
+            
+            for (let i = 0; i < starCount; i++) {
+                backgroundStars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 1.5 + 0.3,
+                    speed: Math.random() * 0.15 + 0.03,
+                    opacity: Math.random() * 0.5 + 0.3,
+                    twinkleSpeed: Math.random() * 0.02 + 0.01
+                });
+            }
+        }
+        
+        // Score and difficulty update
+        function updateScoreAndDifficulty() {
+            if (isWin) return;
+            
+            const now = Date.now();
+            const deltaTime = now - lastScoreTime;
+            
+            if (deltaTime >= 1000) {
+                score += 10;
+                gameTime += 1;
+                lastScoreTime = now;
+                updateScoreDisplay();
+            }
+            
+            if (now - lastSpeedIncreaseTime >= 1000) {
+                speedMultiplier = Math.min(speedMultiplier + 0.12, 10);
+                devilSpeedMultiplier = Math.min(devilSpeedMultiplier + 0.15, 12);
+                devilIntervalMultiplier = Math.max(devilIntervalMultiplier - 0.06, 0.3);
+                
+                lastSpeedIncreaseTime = now;
+                updateSpeedDisplay();
+            }
+        }
+        
+        function updateScoreDisplay() {
+            scoreDisplay.textContent = score;
+            scoreDisplay.classList.add('score-pulse');
+            
+            if (specialSpawnChanceBoost > 0) {
+                scoreDisplay.style.color = '#ffd166';
+                scoreDisplay.style.borderColor = 'rgba(255, 209, 102, 0.3)';
+            } else {
+                scoreDisplay.style.color = '#4dc9ff';
+                scoreDisplay.style.borderColor = 'rgba(77, 201, 255, 0.2)';
+            }
+            
+            setTimeout(() => {
+                scoreDisplay.classList.remove('score-pulse');
+            }, 300);
+        }
+        
+        function updateSpeedDisplay() {
+            const speedValue = speedMultiplier.toFixed(1);
+            
+            if (specialSpawnChanceBoost > 0) {
+                speedDisplay.innerHTML = `${speedValue}x <span style="color:#ffd166; font-size:85%">+🎲</span>`;
+            } else {
+                speedDisplay.textContent = `${speedValue}x`;
+            }
+            
+            if (speedMultiplier > 4) {
+                speedDisplay.style.color = '#ff6b8b';
+                speedDisplay.style.borderColor = 'rgba(255, 107, 139, 0.3)';
+            } else if (speedMultiplier > 2) {
+                speedDisplay.style.color = '#ff9a9e';
+                speedDisplay.style.borderColor = 'rgba(255, 154, 158, 0.3)';
+            } else {
+                speedDisplay.style.color = '#6bffb8';
+                speedDisplay.style.borderColor = 'rgba(107, 255, 184, 0.2)';
+            }
+        }
+        
+        // Record check and update
+        function checkAndUpdateRecord() {
+            if (score > bestRecord) {
+                bestRecord = score;
+                localStorage.setItem('cosmicGiftBestRecord', bestRecord);
+                recordDisplay.textContent = `🏆 ${bestRecord}`;
+                
+                recordDisplay.style.transform = 'scale(1.15)';
+                recordDisplay.style.color = '#ffd166';
+                setTimeout(() => {
+                    recordDisplay.style.transform = 'scale(1)';
+                    recordDisplay.style.color = '#ff9a9e';
+                }, 500);
+            }
+        }
+        
+        // Create devil
+        function createDevil() {
+            if (isWin) return;
+            
+            const angle = Math.random() * Math.PI * 2;
+            
+            nextShotAngle = angle;
+            isCharging = true;
+            chargeTime = 0;
+            chargeParticles = [];
+            aimLineLength = 0;
+            
+            setTimeout(() => {
+                let devilCount = 1;
+                if (speedMultiplier > 6 && Math.random() > 0.65) devilCount = 3;
+                else if (speedMultiplier > 3 && Math.random() > 0.75) devilCount = 2;
+                
+                for (let i = 0; i < devilCount; i++) {
+                    const spread = devilCount === 1 ? 0 : 
+                                  devilCount === 2 ? (i === 0 ? -0.16 : 0.16) :
+                                  (i - 1) * 0.1;
+                    
+                    devils.push({
+                        x: centerX,
+                        y: centerY,
+                        angle: angle + spread,
+                        emoji: devilEmoji,
+                        trail: [],
+                        rotation: Math.random() * Math.PI * 2,
+                        rotationSpeed: (Math.random() - 0.5) * 0.05 * speedMultiplier,
+                        wobble: 0,
+                        wobbleSpeed: Math.random() * 0.05 + 0.02,
+                        spawnTime: Date.now(),
+                        sizePulse: Math.random() * 0.12 + 0.9,
+                        speedBonus: 0.85 + Math.random() * 0.25,
+                        isSpecial: false
+                    });
+                }
+                
+                const now = Date.now();
+                if (!specialCandy && 
+                    now - lastSpecialSpawn > specialSpawnCooldown && 
+                    Math.random() < (specialSpawnChance + specialSpawnChanceBoost)) {
+                    
+                    specialCandy = {
+                        x: centerX,
+                        y: centerY,
+                        angle: Math.random() * Math.PI * 2,
+                        emoji: specialCandyEmoji,
+                        trail: [],
+                        rotation: Math.random() * Math.PI * 2,
+                        rotationSpeed: (Math.random() - 0.5) * 0.08,
+                        wobble: 0,
+                        wobbleSpeed: Math.random() * 0.06 + 0.03,
+                        spawnTime: Date.now(),
+                        sizePulse: 1.0,
+                        isSpecial: true,
+                        speedMultiplier: 2.0
+                    };
+                    
+                    lastSpecialSpawn = now;
+                }
+                
+            }, Math.max(250, 600 / speedMultiplier));
+        }
+        
+        // Transform demons to candies (F4)
+        function transformDemonsToCandies() {
+            if (isWin || devils.length === 0) return;
+            
+            devils.forEach(devil => {
+                devil.emoji = '🍭';
+                devil.isSpecial = true;
+                devil.rotationSpeed = (Math.random() - 0.5) * 0.08;
+                devil.sizePulse = 1.0;
+            });
+            
+            canvas.style.filter = 'sepia(0.5) hue-rotate(90deg) brightness(1.15)';
+            setTimeout(() => {
+                canvas.style.filter = 'none';
+            }, 400);
+            
+            for (let i = 0; i < 25; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 3 + 1.5;
+                const size = Math.random() * 18 + 8;
+                const life = Math.random() * 50 + 40;
+                const emoji = ['🍭', '✨', '⭐', '🌟'][Math.floor(Math.random() * 4)];
+                
+                explosionParticles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: size,
+                    life: life,
+                    maxLife: life,
+                    emoji: emoji,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: (Math.random() - 0.5) * 0.03,
+                    color: getRandomSparkleColor(),
+                    wobble: Math.random() * Math.PI * 2,
+                    wobbleSpeed: Math.random() * 0.06 + 0.02
+                });
+            }
+            
+            console.log(`Transformed ${devils.length} demons to candies!`);
+        }
+        
+        // Show win message
+        function showWinMessage() {
+            isWin = true;
+            gameRunning = false;
+            isSpecialMessageActive = true;
+            
+            specialMessage.classList.add('active');
+            
+            for (let i = 0; i < 40; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 1.5;
+                const size = Math.random() * 22 + 12;
+                const life = Math.random() * 70 + 60;
+                const emoji = ['✨', '⭐', '🌟', '🎉', '🎊'][Math.floor(Math.random() * 5)];
+                
+                explosionParticles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: size,
+                    life: life,
+                    maxLife: life,
+                    emoji: emoji,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: (Math.random() - 0.5) * 0.04,
+                    color: getRandomSparkleColor(),
+                    wobble: Math.random() * Math.PI * 2,
+                    wobbleSpeed: Math.random() * 0.08 + 0.04
+                });
+            }
+            
+            checkAndUpdateRecord();
+        }
+        
+        // Continue to Telegram - FIXED VERSION
+        function continueToTelegram() {
+            const now = Date.now();
+            
+            // Защита от случайных кликов
+            if (now - lastInteractionTime < INTERACTION_COOLDOWN) {
+                return;
+            }
+            
+            lastInteractionTime = now;
+            
+            // Только если сообщение действительно активно
+            if (!isSpecialMessageActive) {
+                return;
+            }
+            
+            // Подтверждение перехода
+            const confirmed = confirm("Go to Telegram bot? You'll need to take a screenshot of the win message first.");
+            
+            if (confirmed) {
+                isSpecialMessageActive = false;
+                specialMessage.classList.remove('active');
+                
+                // Открытие в новой вкладке
+                setTimeout(() => {
+                    window.open('https://t.me/Cvapik_bot', '_blank');
+                }, 300);
+            }
+        }
+        
+        // Show boost message
+        function showBoostMessage() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'boost-message';
+            
+            const newChance = (specialSpawnChance + specialSpawnChanceBoost) * 100;
+            messageDiv.innerHTML = `🎲 Item Chance: <span style="color:#6bffb8">${newChance.toFixed(1)}%</span>`;
+            
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.style.opacity = '1';
+            }, 10);
+            
+            setTimeout(() => {
+                messageDiv.style.opacity = '0';
+                messageDiv.style.transform = 'translate(-50%, -15px)';
+                
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.parentNode.removeChild(messageDiv);
+                    }
+                }, 500);
+            }, 1800);
+        }
+        
+        // Create confetti on game over
+        function createConfetti(x, y) {
+            if (isWin) return;
+            
+            gameOverText.style.opacity = '1';
+            checkAndUpdateRecord();
+            
+            for (let i = 0; i < 30; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 2.5 + 0.8;
+                const size = Math.random() * 14 + 8;
+                const life = Math.random() * 35 + 30;
+                const emoji = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
+                
+                explosionParticles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: size,
+                    life: life,
+                    maxLife: life,
+                    emoji: emoji,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: (Math.random() - 0.5) * 0.03,
+                    color: getRandomSparkleColor(),
+                    wobble: Math.random() * Math.PI * 2,
+                    wobbleSpeed: Math.random() * 0.05 + 0.02
+                });
+            }
+        }
+        
+        function getRandomSparkleColor() {
+            const colors = [
+                'rgba(255, 100, 100, 0.5)',
+                'rgba(100, 255, 100, 0.5)',
+                'rgba(100, 100, 255, 0.5)',
+                'rgba(255, 255, 100, 0.5)',
+                'rgba(255, 100, 255, 0.5)',
+                'rgba(100, 255, 255, 0.5)'
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+        
+        // Draw devil or candy
+        function drawDevil(devil) {
+            devil.trail.push({ 
+                x: devil.x, 
+                y: devil.y, 
+                rotation: devil.rotation
+            });
+            
+            if (devil.trail.length > 3) devil.trail.shift();
+            
+            devil.trail.forEach((point, i) => {
+                const progress = i / devil.trail.length;
+                const alpha = progress * 0.25;
+                
+                ctx.save();
+                ctx.translate(point.x, point.y);
+                ctx.rotate(point.rotation);
+                ctx.globalAlpha = alpha;
+                ctx.scale(0.25 + progress * 0.5, 0.25 + progress * 0.5);
+                
+                ctx.font = `${devilSize * 0.85}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(devil.emoji, 0, 0);
+                
+                ctx.restore();
+            });
+            
+            devil.rotation += devil.rotationSpeed;
+            devil.wobble += devil.wobbleSpeed;
+            const wobbleOffset = Math.sin(devil.wobble) * 2.5;
+            
+            const timeSinceSpawn = Date.now() - devil.spawnTime;
+            const pulse = Math.sin(timeSinceSpawn / 250) * 0.08 + devil.sizePulse;
+            
+            let glowIntensity;
+            
+            if (devil.isSpecial) {
+                glowIntensity = Math.min(0.5, 0.35 + speedMultiplier * 0.015);
+                const rainbowTime = Date.now() / 1200;
+                const hue = (rainbowTime * 150) % 360;
+                const glow = ctx.createRadialGradient(
+                    devil.x, devil.y + wobbleOffset, 0,
+                    devil.x, devil.y + wobbleOffset, devilSize * (1.4 + speedMultiplier * 0.04) * pulse
+                );
+                glow.addColorStop(0, `hsla(${hue}, 90%, 75%, ${glowIntensity})`);
+                glow.addColorStop(0.7, `hsla(${(hue + 80) % 360}, 80%, 65%, ${glowIntensity * 0.5})`);
+                glow.addColorStop(1, 'transparent');
+                
+                ctx.beginPath();
+                ctx.arc(devil.x, devil.y + wobbleOffset, devilSize * (1.4 + speedMultiplier * 0.04) * pulse, 0, Math.PI * 2);
+                ctx.fillStyle = glow;
+                ctx.fill();
+            } else {
+                glowIntensity = Math.min(0.55, 0.25 + speedMultiplier * 0.025);
+                const glow = ctx.createRadialGradient(
+                    devil.x, devil.y + wobbleOffset, 0,
+                    devil.x, devil.y + wobbleOffset, devilSize * (1.2 + speedMultiplier * 0.04) * pulse
+                );
+                glow.addColorStop(0, `rgba(150, 40, 40, ${glowIntensity})`);
+                glow.addColorStop(0.7, `rgba(100, 20, 100, ${glowIntensity * 0.6})`);
+                glow.addColorStop(1, 'transparent');
+                
+                ctx.beginPath();
+                ctx.arc(devil.x, devil.y + wobbleOffset, devilSize * (1.2 + speedMultiplier * 0.04) * pulse, 0, Math.PI * 2);
+                ctx.fillStyle = glow;
+                ctx.fill();
+            }
+            
+            ctx.save();
+            ctx.translate(devil.x, devil.y + wobbleOffset);
+            ctx.rotate(devil.rotation);
+            ctx.scale(pulse, pulse);
+            
+            ctx.font = `${devilSize * 1.1}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(devil.emoji, 0, 0);
+            
+            ctx.restore();
+        }
+        
+        // Draw special candy
+        function drawSpecialCandy(candy) {
+            candy.trail.push({ 
+                x: candy.x, 
+                y: candy.y, 
+                rotation: candy.rotation
+            });
+            
+            if (candy.trail.length > 4) candy.trail.shift();
+            
+            candy.trail.forEach((point, i) => {
+                const progress = i / candy.trail.length;
+                const alpha = progress * 0.35;
+                
+                ctx.save();
+                ctx.translate(point.x, point.y);
+                ctx.rotate(point.rotation);
+                ctx.globalAlpha = alpha;
+                ctx.scale(0.35 + progress * 0.55, 0.35 + progress * 0.55);
+                
+                ctx.font = `${devilSize * 0.9}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(candy.emoji, 0, 0);
+                
+                ctx.restore();
+            });
+            
+            candy.rotation += candy.rotationSpeed;
+            candy.wobble += candy.wobbleSpeed;
+            const wobbleOffset = Math.sin(candy.wobble) * 3;
+            
+            const timeSinceSpawn = Date.now() - candy.spawnTime;
+            const pulse = Math.sin(timeSinceSpawn / 120) * 0.12 + candy.sizePulse;
+            
+            const rainbowTime = Date.now() / 800;
+            const hue = (rainbowTime * 200) % 360;
+            const glow = ctx.createRadialGradient(
+                candy.x, candy.y + wobbleOffset, 0,
+                candy.x, candy.y + wobbleOffset, devilSize * 2.2 * pulse
+            );
+            glow.addColorStop(0, `hsla(${hue}, 100%, 80%, 0.65)`);
+            glow.addColorStop(0.6, `hsla(${(hue + 70) % 360}, 90%, 70%, 0.35)`);
+            glow.addColorStop(1, 'transparent');
+            
+            ctx.beginPath();
+            ctx.arc(candy.x, candy.y + wobbleOffset, devilSize * 2.2 * pulse, 0, Math.PI * 2);
+            ctx.fillStyle = glow;
+            ctx.fill();
+            
+            ctx.save();
+            ctx.translate(candy.x, candy.y + wobbleOffset);
+            ctx.rotate(candy.rotation);
+            ctx.scale(pulse, pulse);
+            
+            ctx.font = `${devilSize * 1.4}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('🍭', 0, 0);
+            
+            ctx.restore();
+            
+            ctx.save();
+            ctx.globalAlpha = 0.5;
+            const starTime = Date.now() / 600;
+            
+            for (let i = 0; i < 4; i++) {
+                const angle = starTime + i * Math.PI / 2;
+                const dist = devilSize * 1.6;
+                const starX = candy.x + Math.cos(angle) * dist;
+                const starY = candy.y + Math.sin(angle) * dist;
+                
+                ctx.save();
+                ctx.translate(starX, starY);
+                ctx.rotate(-starTime * 1.5);
+                
+                ctx.font = `${devilSize * 0.7}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('✨', 0, 0);
+                
+                ctx.restore();
+            }
+            ctx.restore();
+        }
+        
+        // Draw player
+        function drawGift() {
+            if (!gameRunning && !isWin) return;
+            
+            const giftX = centerX + Math.cos(playerAngle) * orbitRadius;
+            const giftY = centerY + Math.sin(playerAngle) * orbitRadius;
+            
+            giftRotation += clockwise ? 0.02 * speedMultiplier : -0.02 * speedMultiplier;
+            
+            const pulse = Math.sin(Date.now() / 1000) * 0.05 + 0.95;
+            
+            const glowIntensity = Math.min(0.45, 0.15 + speedMultiplier * 0.025);
+            const giftGlow = ctx.createRadialGradient(
+                giftX, giftY, 0,
+                giftX, giftY, playerSize * (1.4 + speedMultiplier * 0.04) * pulse
+            );
+            giftGlow.addColorStop(0, `rgba(100, 180, 240, ${glowIntensity})`);
+            giftGlow.addColorStop(0.8, `rgba(100, 180, 240, ${glowIntensity * 0.3})`);
+            giftGlow.addColorStop(1, 'transparent');
+            
+            ctx.beginPath();
+            ctx.arc(giftX, giftY, playerSize * (1.4 + speedMultiplier * 0.04) * pulse, 0, Math.PI * 2);
+            ctx.fillStyle = giftGlow;
+            ctx.fill();
+            
+            ctx.save();
+            ctx.translate(giftX, giftY);
+            ctx.rotate(giftRotation);
+            ctx.scale(pulse, pulse);
+            
+            ctx.font = `${playerSize * 1.05}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('🎁', 0, 0);
+            
+            ctx.restore();
+        }
+        
+        // Draw tree
+        function drawTree() {
+            if (isCharging && !isWin) {
+                chargeTime += 1;
+                
+                aimLineLength = Math.min(Math.min(canvas.width, canvas.height) * 0.32, aimLineLength + 4.5 * speedMultiplier);
+                
+                const lineAlpha = 0.25 + Math.sin(chargeTime/10) * 0.15;
+                const lineColor = `rgba(150, 50, 50, ${lineAlpha})`;
+                const circleColor = `rgba(150, 50, 50, ${0.2 + Math.sin(chargeTime/6) * 0.1})`;
+                
+                ctx.strokeStyle = lineColor;
+                ctx.lineWidth = 1 + speedMultiplier * 0.08;
+                ctx.setLineDash([5, 4]);
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(
+                    centerX + Math.cos(nextShotAngle) * aimLineLength,
+                    centerY + Math.sin(nextShotAngle) * aimLineLength
+                );
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                ctx.strokeStyle = circleColor;
+                ctx.lineWidth = 0.7 + speedMultiplier * 0.04;
+                ctx.beginPath();
+                ctx.arc(
+                    centerX + Math.cos(nextShotAngle) * aimLineLength,
+                    centerY + Math.sin(nextShotAngle) * aimLineLength,
+                    devilSize * (1.2 + speedMultiplier * 0.05), 0, Math.PI * 2
+                );
+                ctx.stroke();
+                
+                if (chargeTime % Math.max(3, Math.floor(10 / speedMultiplier)) === 0) {
+                    const dist = Math.random() * 15 + 6;
+                    const angleOffset = (Math.random() - 0.5) * 0.15;
+                    
+                    chargeParticles.push({
+                        x: centerX + Math.cos(nextShotAngle + angleOffset) * dist,
+                        y: centerY + Math.sin(nextShotAngle + angleOffset) * dist,
+                        size: Math.random() * 1.2 + 0.4,
+                        life: 10,
+                        maxLife: 10,
+                        color: `rgba(150, ${Math.random() * 30}, 0, ${Math.random() * 0.25 + 0.15})`
+                    });
+                }
+                
+                chargeParticles.forEach((p, i) => {
+                    p.life--;
+                    
+                    if (p.life <= 0) {
+                        chargeParticles.splice(i, 1);
+                    } else {
+                        const alpha = p.life / p.maxLife;
+                        
+                        ctx.fillStyle = p.color.replace(')', `, ${alpha})`);
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+                
+                if (chargeTime >= 70 / speedMultiplier) {
+                    isCharging = false;
+                    chargeParticles = [];
+                    aimLineLength = 0;
+                }
+            }
+            
+            const treePulse = Math.sin(Date.now() / 1500) * 0.04 + 0.96;
+            const treeGlow = ctx.createRadialGradient(
+                centerX, centerY, 0,
+                centerX, centerY, playerSize * (3 + speedMultiplier * 0.08) * treePulse
+            );
+            treeGlow.addColorStop(0, 'rgba(70, 160, 80, 0.25)');
+            treeGlow.addColorStop(0.9, 'rgba(70, 160, 80, 0.03)');
+            treeGlow.addColorStop(1, 'transparent');
+            
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, playerSize * (3 + speedMultiplier * 0.08) * treePulse, 0, Math.PI * 2);
+            ctx.fillStyle = treeGlow;
+            ctx.fill();
+            
+            ctx.font = `${playerSize * 1.9}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#4a9e5a';
+            ctx.fillText('🎄', centerX, centerY);
+            
+            const time = Date.now() / 600;
+            const lightPositions = [
+                {x: -8, y: -4}, {x: 8, y: -4},
+                {x: -12, y: 1}, {x: 12, y: 1},
+                {x: 0, y: 4}
+            ];
+            
+            lightPositions.forEach((light, i) => {
+                const blink = Math.sin(time + i * 1.2) > 0.6 ? 1 : 0;
+                if (blink) {
+                    const colors = ['#ff8888', '#88ff88', '#8888ff'];
+                    ctx.fillStyle = colors[i % colors.length];
+                    ctx.beginPath();
+                    ctx.arc(centerX + light.x, centerY + light.y, 1.2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        }
+        
+        // Draw confetti
+        function drawConfetti() {
+            explosionParticles.forEach((p, i) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.025;
+                p.vx *= 0.992;
+                p.life--;
+                p.rotation += p.rotationSpeed;
+                p.wobble += p.wobbleSpeed;
+                
+                if (p.life <= 0) {
+                    explosionParticles.splice(i, 1);
+                    return;
+                }
+                
+                const alpha = p.life / p.maxLife;
+                const wobble = Math.sin(p.wobble) * 3;
+                
+                ctx.save();
+                ctx.translate(p.x, p.y + wobble);
+                ctx.rotate(p.rotation);
+                ctx.globalAlpha = alpha * 0.85;
+                
+                ctx.font = `${p.size}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(p.emoji, 0, 0);
+                
+                ctx.restore();
+            });
+        }
+        
+        // Draw boost indicator
+        function drawBoostIndicator() {
+            if (specialSpawnChanceBoost > 0 && boostActiveTime > 0 && !isWin) {
+                const remainingTime = (boostActiveTime / 60).toFixed(1);
+                const boostX = canvas.width - 90;
+                const boostY = canvas.height - 70;
+                
+                ctx.save();
+                ctx.fillStyle = 'rgba(255, 209, 102, 0.15)';
+                ctx.beginPath();
+                ctx.roundRect(boostX - 45, boostY - 18, 90, 36, 8);
+                ctx.fill();
+                
+                ctx.strokeStyle = 'rgba(255, 209, 102, 0.3)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.roundRect(boostX - 45, boostY - 18, 90, 36, 8);
+                ctx.stroke();
+                
+                ctx.fillStyle = '#ffd166';
+                ctx.font = '600 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🎲 BOOST', boostX, boostY - 4);
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '13px Arial';
+                ctx.fillText(`${remainingTime}s`, boostX, boostY + 8);
+                
+                ctx.restore();
+                
+                if (boostEffect) {
+                    ctx.save();
+                    ctx.globalAlpha = 0.08;
+                    ctx.fillStyle = '#ffd166';
+                    ctx.beginPath();
+                    ctx.arc(canvas.width / 2, canvas.height / 2, 
+                           Math.min(canvas.width, canvas.height) * 0.45, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+        }
+        
+        // Polyfill for roundRect
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+                if (w < 2 * r) r = w / 2;
+                if (h < 2 * r) r = h / 2;
+                this.beginPath();
+                this.moveTo(x + r, y);
+                this.arcTo(x + w, y, x + w, y + h, r);
+                this.arcTo(x + w, y + h, x, y + h, r);
+                this.arcTo(x, y + h, x, y, r);
+                this.arcTo(x, y, x + w, y, r);
+                this.closePath();
+                return this;
+            }
+        }
+        
+        // Background
+        function drawBackground() {
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#0f0c29');
+            gradient.addColorStop(0.5, '#302b63');
+            gradient.addColorStop(1, '#24243e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const time = Date.now() / 2500;
+            backgroundStars.forEach(star => {
+                star.y += star.speed * speedMultiplier * 0.7;
+                if (star.y > canvas.height) {
+                    star.y = -2;
+                    star.x = Math.random() * canvas.width;
+                }
+                
+                const twinkle = Math.sin(time * star.twinkleSpeed * 10 + star.x * 0.01) * 0.15 + 0.85;
+                
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity * twinkle * 0.8})`;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+        
+        // Check collisions
+        function checkCollisions() {
+            if (!gameRunning || isWin) return;
+            
+            const giftX = centerX + Math.cos(playerAngle) * orbitRadius;
+            const giftY = centerY + Math.sin(playerAngle) * orbitRadius;
+            
+            devils.forEach((devil, i) => {
+                const dx = giftX - devil.x;
+                const dy = giftY - devil.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < playerSize/2 + devilSize/2) {
+                    if (devil.isSpecial) {
+                        score += 100;
+                        updateScoreDisplay();
+                        devils.splice(i, 1);
+                        
+                        for (let j = 0; j < 12; j++) {
+                            const angle = Math.random() * Math.PI * 2;
+                            const speed = Math.random() * 2.5 + 0.8;
+                            const size = Math.random() * 10 + 6;
+                            const life = Math.random() * 25 + 25;
+                            const emoji = ['✨', '⭐', '🌟'][Math.floor(Math.random() * 3)];
+                            
+                            explosionParticles.push({
+                                x: devil.x,
+                                y: devil.y,
+                                vx: Math.cos(angle) * speed,
+                                vy: Math.sin(angle) * speed,
+                                size: size,
+                                life: life,
+                                maxLife: life,
+                                emoji: emoji,
+                                rotation: Math.random() * Math.PI * 2,
+                                rotationSpeed: (Math.random() - 0.5) * 0.02,
+                                color: getRandomSparkleColor(),
+                                wobble: Math.random() * Math.PI * 2,
+                                wobbleSpeed: Math.random() * 0.04 + 0.02
+                            });
+                        }
+                    } else {
+                        gameRunning = false;
+                        createConfetti(giftX, giftY);
+                        devils.splice(i, 1);
+                    }
+                }
+            });
+            
+            if (specialCandy) {
+                const dx = giftX - specialCandy.x;
+                const dy = giftY - specialCandy.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < playerSize/2 + devilSize/2) {
+                    showWinMessage();
+                    specialCandy = null;
+                }
+            }
+        }
+        
+        // Game update
+        function update() {
+            if (!gameRunning && !isWin) {
+                explosionParticles.forEach((p, i) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.025;
+                    p.life--;
+                    
+                    if (p.life <= 0) explosionParticles.splice(i, 1);
+                });
+                return;
+            }
+            
+            updateScoreAndDifficulty();
+            
+            if (specialSpawnChanceBoost > 0 && !isWin) {
+                boostActiveTime--;
+                if (boostActiveTime <= 0) {
+                    specialSpawnChanceBoost = 0;
+                    boostEffect = false;
+                    updateScoreDisplay();
+                    updateSpeedDisplay();
+                }
+                
+                boostEffect = Math.sin(Date.now() / 250) > 0;
+            }
+            
+            if (gameRunning) {
+                playerAngle += clockwise ? 0.015 * speedMultiplier : -0.015 * speedMultiplier;
+            }
+            
+            if (gameRunning && !isWin) {
+                const now = Date.now();
+                const currentDevilInterval = baseDevilInterval * devilIntervalMultiplier;
+                
+                if (now - lastDevilTime > currentDevilInterval && !isCharging) {
+                    createDevil();
+                    lastDevilTime = now;
+                }
+                
+                devils.forEach((devil, i) => {
+                    const actualSpeed = baseDevilSpeed * devilSpeedMultiplier * devil.speedBonus;
+                    devil.x += Math.cos(devil.angle) * actualSpeed;
+                    devil.y += Math.sin(devil.angle) * actualSpeed;
+                    
+                    const dx = devil.x - centerX;
+                    const dy = devil.y - centerY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance > Math.max(canvas.width, canvas.height) * 0.5) {
+                        devils.splice(i, 1);
+                    }
+                });
+                
+                if (specialCandy) {
+                    const specialSpeed = baseDevilSpeed * devilSpeedMultiplier * 2.0;
+                    specialCandy.x += Math.cos(specialCandy.angle) * specialSpeed;
+                    specialCandy.y += Math.sin(specialCandy.angle) * specialSpeed;
+                    specialCandy.rotation += specialCandy.rotationSpeed;
+                    
+                    const dx = specialCandy.x - centerX;
+                    const dy = specialCandy.y - centerY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance > Math.max(canvas.width, canvas.height) * 0.55) {
+                        specialCandy = null;
+                    }
+                }
+            }
+            
+            checkCollisions();
+        }
+        
+        // Draw game
+        function draw() {
+            drawBackground();
+            drawTree();
+            devils.forEach(drawDevil);
+            
+            if (specialCandy) {
+                drawSpecialCandy(specialCandy);
+            }
+            
+            drawGift();
+            drawConfetti();
+            drawBoostIndicator();
+        }
+        
+        // Toggle direction
+        function toggleDirection() {
+            const now = Date.now();
+            
+            // Защита от случайных кликов
+            if (now - lastInteractionTime < 100 && !gameRunning) {
+                return;
+            }
+            
+            lastInteractionTime = now;
+            
+            if (isWin) return;
+            
+            if (!gameRunning) {
+                gameRunning = true;
+                playerAngle = 0;
+                clockwise = true;
+                devils = [];
+                specialCandy = null;
+                explosionParticles = [];
+                giftRotation = 0;
+                score = 0;
+                gameTime = 0;
+                speedMultiplier = 1.0;
+                devilSpeedMultiplier = 1.0;
+                devilIntervalMultiplier = 1.0;
+                lastScoreTime = Date.now();
+                lastSpeedIncreaseTime = Date.now();
+                lastSpecialSpawn = 0;
+                specialSpawnChanceBoost = 0;
+                boostActiveTime = 0;
+                gameOverText.style.opacity = '0';
+                specialMessage.classList.remove('active');
+                isSpecialMessageActive = false;
+                isWin = false;
+                updateScoreDisplay();
+                updateSpeedDisplay();
+                return;
+            }
+            
+            clockwise = !clockwise;
+        }
+        
+        // Activate chance boost (F8)
+        function activateChanceBoost() {
+            if (isWin) return;
+            
+            specialSpawnChanceBoost = 0.05;
+            boostActiveTime = boostTotalTime;
+            
+            showBoostMessage();
+            
+            canvas.style.filter = 'hue-rotate(60deg) brightness(1.08) saturate(1.1)';
+            setTimeout(() => {
+                canvas.style.filter = 'none';
+            }, 350);
+            
+            updateScoreDisplay();
+            updateSpeedDisplay();
+            
+            console.log('Chance increased by 5% for 10 seconds!');
+        }
+        
+        // Transform demons to candy (F4)
+        function transformDemonsToCandiesHandler() {
+            if (isWin) return;
+            
+            transformDemonsToCandies();
+        }
+        
+        // Game loop
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Initialization
+        resizeCanvas();
+        initStars();
+        updateScoreDisplay();
+        updateSpeedDisplay();
+        
+        // Event handlers
+        canvas.addEventListener('click', toggleDirection);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            toggleDirection();
+        }, { passive: false });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                toggleDirection();
+            }
+            
+            if (e.code === 'F8') {
+                e.preventDefault();
+                activateChanceBoost();
+            }
+            
+            if (e.code === 'F4') {
+                e.preventDefault();
+                transformDemonsToCandiesHandler();
+            }
+        });
+        
+        // Continue button handler - FIXED
+        continueButton.addEventListener('click', continueToTelegram);
+        continueButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            continueToTelegram();
+        }, { passive: false });
+        
+        // Защита от случайных кликов на весь документ
+        document.addEventListener('click', (e) => {
+            // Если клик не по кнопке продолжения и сообщение активно
+            if (isSpecialMessageActive && !e.target.closest('.continue-button')) {
+                e.stopPropagation();
+            }
+        }, true);
+        
+        // Window resize
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            initStars();
+        });
+        
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                resizeCanvas();
+                initStars();
+            }, 100);
+        });
+        
+        // Start game
+        gameLoop();
+    </script>
+</body>
+</html>
